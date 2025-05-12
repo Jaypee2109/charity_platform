@@ -1,36 +1,133 @@
-import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { Card, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
+
+export function Donate({ contract }) {
+  const [campaignId, setCampaignId] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const handleDonate = async () => {
+    if (!campaignId || !amount) {
+      alert("Please enter both campaign ID and amount");
+      return;
+    }
+    try {
+      const id = parseInt(campaignId, 10);
+      const tx = await contract.donate(id, {
+        value: ethers.utils.parseEther(amount),
+      });
+      await tx.wait();
+      alert(`Donated ${amount} ETH to campaign #${id}`);
+    } catch (err) {
+      console.error(err);
+      alert("Donation failed");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <h2 className="text-xl font-bold">Donate</h2>
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="number"
+          placeholder="Campaign ID"
+          value={campaignId}
+          onChange={(e) => setCampaignId(e.target.value)}
+        />
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="text"
+          placeholder="Amount (ETH)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <Button className="mt-2 w-full" onClick={handleDonate}>
+          Donate
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function CreateAuction({ contract }) {
+  const [charityAddr, setCharityAddr] = useState("");
+  const [duration, setDuration] = useState("");
+
+  const handleCreate = async () => {
+    if (!charityAddr || !duration) {
+      alert("Please enter charity address and duration");
+      return;
+    }
+    try {
+      const dur = parseInt(duration, 10);
+      const tx = await contract.createAuction(charityAddr, dur);
+      await tx.wait();
+      alert(
+        `Auction created for charity ${charityAddr} lasting ${duration} seconds`
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Auction creation failed");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <h2 className="text-xl font-bold">Create Auction</h2>
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="text"
+          placeholder="Charity Address"
+          value={charityAddr}
+          onChange={(e) => setCharityAddr(e.target.value)}
+        />
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="number"
+          placeholder="Duration (seconds)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+        />
+        <Button className="mt-2 w-full" onClick={handleCreate}>
+          Create Auction
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function AuctionList({ contract }) {
   const [auctions, setAuctions] = useState([]);
 
   useEffect(() => {
     if (!contract) return;
-    async function fetchAuctions() {
-      const countBN = await contract.auctionCount();
-      const count = countBN.toNumber();
+    (async () => {
+      const count = (await contract.auctionCount()).toNumber();
       const items = [];
-      for (let i = 0; i < count; i++) {
-        const a = await contract.auctions(i);
-        items.push({ id: i, ...a });
+      for (let id = 1; id <= count; id++) {
+        const a = await contract.auctions(id);
+        items.push({ id, ...a });
       }
       setAuctions(items);
-    }
-    fetchAuctions();
+    })();
   }, [contract]);
 
   return (
     <div className="col-span-2 grid gap-4">
-      {auctions.map(a => (
+      {auctions.map((a) => (
         <Card key={a.id}>
           <CardContent>
             <h3 className="font-semibold">Auction #{a.id}</h3>
             <p>Charity: {a.charity}</p>
-            <p>Highest Bid: {ethers.utils.formatEther(a.highestBid || 0)} ETH</p>
-            <p>Highest Bidder: {a.highestBidder || 'None'}</p>
-            <p>Ends: {new Date(a.endTime.toNumber() * 1000).toLocaleString()}</p>
+            <p>Highest Bid: {ethers.utils.formatEther(a.highestBid)} ETH</p>
+            <p>Highest Bidder: {a.highestBidder || "None"}</p>
+            <p>
+              Ends: {new Date(a.endTime.toNumber() * 1000).toLocaleString()}
+            </p>
+            {a.ended && <p className="text-green-600">✔ Auction Ended</p>}
           </CardContent>
         </Card>
       ))}
@@ -39,13 +136,23 @@ export function AuctionList({ contract }) {
 }
 
 export function FinalizeAuction({ contract }) {
-  const [auctionId, setAuctionId] = useState('');
+  const [auctionId, setAuctionId] = useState("");
 
-  async function handleFinalize() {
-    if (!auctionId) return;
-    const tx = await contract.finalizeAuction(auctionId);
-    await tx.wait();
-  }
+  const handleFinalize = async () => {
+    if (!auctionId) {
+      alert("Please enter an auction ID");
+      return;
+    }
+    try {
+      const id = parseInt(auctionId, 10);
+      const tx = await contract.endAuction(id);
+      await tx.wait();
+      alert(`Auction #${id} finalized!`);
+    } catch (err) {
+      console.error(err);
+      alert("Finalization failed");
+    }
+  };
 
   return (
     <Card>
@@ -53,43 +160,70 @@ export function FinalizeAuction({ contract }) {
         <h2 className="text-xl font-bold">Finalize Auction</h2>
         <input
           className="mt-2 w-full p-2 border rounded"
+          type="number"
           placeholder="Auction ID"
           value={auctionId}
-          onChange={e => setAuctionId(e.target.value)}
+          onChange={(e) => setAuctionId(e.target.value)}
         />
-        <Button className="mt-2" onClick={handleFinalize}>Finalize</Button>
+        <Button className="mt-2 w-full" onClick={handleFinalize}>
+          Finalize
+        </Button>
       </CardContent>
     </Card>
   );
 }
 
-export function MetricsDashboard({ contract, account }) {
-  const [donorMetrics, setDonorMetrics] = useState({ total: '0', count: 0 });
-  const [charityMetrics, setCharityMetrics] = useState({ total: '0', count: 0 });
+export function MetricsDashboard({ contract }) {
+  const [campaignId, setCampaignId] = useState("");
+  const [metrics, setMetrics] = useState({
+    total: "0",
+    count: 0,
+    highest: "0",
+    average: "0",
+  });
 
   useEffect(() => {
-    if (!contract || !account) return;
-    async function fetchMetrics() {
-      const [donTotalBN, donCountBN] = await contract.getDonorMetrics(account);
-      const [charTotalBN, charCountBN] = await contract.getCharityMetrics(account);
-      setDonorMetrics({
-        total: ethers.utils.formatEther(donTotalBN),
-        count: donCountBN.toNumber(),
+    if (!contract || !campaignId) return;
+    (async () => {
+      const id = parseInt(campaignId, 10);
+      const [totalBN, countBN, highestBN, avgBN] =
+        await contract.getCampaignMetrics(id);
+      setMetrics({
+        total: ethers.utils.formatEther(totalBN),
+        count: countBN.toNumber(),
+        highest: ethers.utils.formatEther(highestBN),
+        average: ethers.utils.formatEther(avgBN),
       });
-      setCharityMetrics({
-        total: ethers.utils.formatEther(charTotalBN),
-        count: charCountBN.toNumber(),
-      });
-    }
-    fetchMetrics();
-  }, [contract, account]);
+    })();
+  }, [contract, campaignId]);
 
   return (
     <Card>
       <CardContent>
-        <h2 className="text-xl font-bold">My Metrics</h2>
-        <p><strong>As Donor:</strong> {donorMetrics.count} donations, {donorMetrics.total} ETH</p>
-        <p><strong>As Charity:</strong> {charityMetrics.count} donations, {charityMetrics.total} ETH</p>
+        <h2 className="text-xl font-bold">Campaign Metrics</h2>
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="number"
+          placeholder="Campaign ID"
+          value={campaignId}
+          onChange={(e) => setCampaignId(e.target.value)}
+        />
+        {campaignId && (
+          <div className="mt-4 space-y-1">
+            <p>
+              <strong>Total Donations:</strong> {metrics.total} ETH
+            </p>
+            <p>
+              <strong>Donor Count:</strong> {metrics.count}
+            </p>
+            <p>
+              <strong>Highest Donation:</strong> {metrics.highest} ETH
+            </p>
+            <p>
+              <strong>Average Donation:</strong> {metrics.average} ETH
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

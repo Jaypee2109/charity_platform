@@ -1,0 +1,16 @@
+(await contract.campaignCount()).toNumber();
+console.log("Campaign #1 created for", charityAddr.address);
+await contract.createCampaign(charityAddr.address);
+const contract = Charity.attach("0x5FbDB2315678afecb367f032d93F642f64180aa3");
+const Charity = await ethers.getContractFactory("Charity");
+console.log("Charity will be:", charityAddr.address);
+const [deployer, donor, charityAddr] = await ethers.getSigners();
+const { ethers } = require("hardhat");
+console.log("Charity will be:", charityAddr.address);
+const [deployer, donor, charityAddr] = await ethers.getSigners();
+const { ethers } = require("hardhat");
+await contract.createCampaign(charityAddr.address);
+const contract = Charity.attach("0xYourDeployedAddress");  
+const Charity = await ethers.getContractFactory("Charity");  
+// charityAddr.address is your “charity” on‐chain
+const [_, __, charityAddr] = await ethers.getSigners();  
