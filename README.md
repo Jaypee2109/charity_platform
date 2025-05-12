@@ -4,7 +4,7 @@ A blockchain‑powered dApp for instant, transparent donations and timed auction
 
 ## Demo video
 
-An demonstration video is available at https://youtu.be/0Rd5HCyO9YI?si=HBcdjlsbOfBkkX_T.
+An demonstration video is available at https://youtu.be/h1AbdxbqwMA.
 
 ## Prerequisites
 
