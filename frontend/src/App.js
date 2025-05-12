@@ -12,6 +12,8 @@ import {
   AuctionList,
   FinalizeAuction,
   MetricsDashboard,
+  PlaceBid,
+  CreateCampaign,
 } from "./components/Components";
 
 // ABI + address
@@ -82,6 +84,9 @@ export default function App() {
 
   return (
     <div className="p-4 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* Campaign management */}
+      <CreateCampaign contract={contract} />
+
       {/* Donation form */}
       <Donate contract={contract} account={account} />
 
@@ -90,6 +95,9 @@ export default function App() {
 
       {/* List all auctions */}
       <AuctionList contract={contract} account={account} />
+
+      {/* Real-time bidding */}
+      <PlaceBid contract={contract} />
 
       {/* End an auction manually */}
       <FinalizeAuction contract={contract} account={account} />

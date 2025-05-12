@@ -228,3 +228,88 @@ export function MetricsDashboard({ contract }) {
     </Card>
   );
 }
+
+export function CreateCampaign({ contract }) {
+  const [charityAddr, setCharityAddr] = useState("");
+
+  const handleCreate = async () => {
+    if (!charityAddr) {
+      alert("Enter a charity address");
+      return;
+    }
+    try {
+      const tx = await contract.createCampaign(charityAddr);
+      await tx.wait();
+      alert(`Campaign created for ${charityAddr}`);
+    } catch (err) {
+      console.error(err);
+      alert("Campaign creation failed");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <h2 className="text-xl font-bold">Create Campaign</h2>
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="text"
+          placeholder="Charity Address"
+          value={charityAddr}
+          onChange={(e) => setCharityAddr(e.target.value)}
+        />
+        <Button className="mt-2 w-full" onClick={handleCreate}>
+          Create Campaign
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function PlaceBid({ contract }) {
+  const [auctionId, setAuctionId] = useState("");
+  const [bidAmount, setBidAmount] = useState("");
+
+  const handleBid = async () => {
+    if (!auctionId || !bidAmount) {
+      alert("Enter auction ID and bid amount");
+      return;
+    }
+    try {
+      const id = parseInt(auctionId, 10);
+      const tx = await contract.bid(id, {
+        value: ethers.utils.parseEther(bidAmount),
+      });
+      await tx.wait();
+      alert(`Bid of ${bidAmount} ETH placed on auction #${id}`);
+    } catch (err) {
+      console.error(err);
+      alert("Bid failed");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <h2 className="text-xl font-bold">Place Bid</h2>
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="number"
+          placeholder="Auction ID"
+          value={auctionId}
+          onChange={(e) => setAuctionId(e.target.value)}
+        />
+        <input
+          className="mt-2 w-full p-2 border rounded"
+          type="text"
+          placeholder="Bid Amount (ETH)"
+          value={bidAmount}
+          onChange={(e) => setBidAmount(e.target.value)}
+        />
+        <Button className="mt-2 w-full" onClick={handleBid}>
+          Place Bid
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
